@@ -1,3 +1,6 @@
+import com.zaxxer.hikari.HikariDataSource;
+
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -5,7 +8,10 @@ import java.sql.*;
 
 public class App {
     public static void main(String[] args) {
-        try(Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/jdbctest", "postgres", "admin")) {
+        DataSource dataSource = createDataSource();
+        try(Connection connection =
+//                    DriverManager.getConnection("jdbc:postgresql://localhost:5432/jdbctest", "postgres", "admin")) {
+                    dataSource.getConnection()) {
             System.out.println(connection.isValid(0));
 //            String sql = new String(Files.readAllBytes(Paths.get("src/main/resources/Users.sql")));
 //            Statement statement = connection.createStatement();
@@ -47,5 +53,16 @@ public class App {
         } finally {
             System.out.println("connection closed");
         }
+    }
+
+    private static DataSource createDataSource() {
+        // create a hikari connection pool datasource
+        // springboot uses hikaricp by default. It is transitively imported with the following Spring Boot starters:
+        // spring-boot-starter-jdbc or spring-boot-starter-data-jpa.
+        HikariDataSource ds = new HikariDataSource();
+        ds.setJdbcUrl("jdbc:postgresql://localhost:5432/jdbctest");
+        ds.setUsername("postgres");
+        ds.setPassword("admin");
+        return ds;
     }
 }
